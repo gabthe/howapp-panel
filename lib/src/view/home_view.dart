@@ -17,21 +17,17 @@ class HomePage extends StatelessWidget {
                 fontSize: 20,
               ),
             ),
-            InkWell(
+            HomeDrawerButtonWidget(
               onTap: () {
-                GoRouter.of(context).goNamed('create-event');
+                context.goNamed("create-event");
               },
-              child: Container(
-                width: double.infinity,
-                height: 40,
-                child: const Row(
-                  children: [
-                    Icon(Icons.create),
-                    SizedBox(width: 4),
-                    Text('Criar novo evento'),
-                  ],
-                ),
-              ),
+              buttonTitle: 'Criar Evento',
+            ),
+            HomeDrawerButtonWidget(
+              onTap: () {
+                context.goNamed("create-tag");
+              },
+              buttonTitle: 'Criar Tag',
             ),
           ],
         ),
@@ -55,7 +51,7 @@ class HomePage extends StatelessWidget {
                   height: 5,
                   width: 5,
                   color: Colors.red,
-                  child: Text('Ola'),
+                  child: const Text('Ola'),
                 ),
                 Container(
                   height: 5,
@@ -76,6 +72,34 @@ class HomePage extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class HomeDrawerButtonWidget extends StatelessWidget {
+  const HomeDrawerButtonWidget({
+    super.key,
+    required this.onTap,
+    required this.buttonTitle,
+  });
+  final void Function()? onTap;
+  final String buttonTitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        height: 40,
+        child: Row(
+          children: [
+            const Icon(Icons.create),
+            const SizedBox(width: 4),
+            Text(buttonTitle),
+          ],
+        ),
       ),
     );
   }
