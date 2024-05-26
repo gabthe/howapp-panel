@@ -29,6 +29,12 @@ class HomePage extends StatelessWidget {
               },
               buttonTitle: 'Criar Tag',
             ),
+            HomeDrawerButtonWidget(
+              onTap: () {
+                context.goNamed("create-type-of-place");
+              },
+              buttonTitle: 'Criar Tipo de Estabelecimento',
+            ),
           ],
         ),
       ),

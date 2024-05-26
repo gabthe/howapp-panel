@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:howapp_panel/src/view/create_event_view.dart';
 import 'package:howapp_panel/src/view/create_tag.dart';
+import 'package:howapp_panel/src/view/create_type_of_place.dart';
 import 'package:howapp_panel/src/view/home_view.dart';
 
 final routes = GoRouter(
@@ -40,6 +41,13 @@ final routes = GoRouter(
       path: '/create-tag',
       builder: (context, state) {
         return const CreateTagView();
+      },
+    ),
+    GoRoute(
+      name: 'create-type-of-place',
+      path: '/create-type-of-place',
+      builder: (context, state) {
+        return const CreateTypeOfPlace();
       },
     ),
   ],
