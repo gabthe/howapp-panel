@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:howapp_panel/src/model/event_tag.dart';
+import 'package:howapp_panel/src/model/commerce_type.dart';
 
 class EventRepo {
   final CollectionReference eventTagsCollection =
@@ -36,15 +37,15 @@ class EventRepo {
     }
   }
 
-  Future<void> addTypeOfPlace({required EventTag eventTag}) async {
+  Future<void> addTypeOfPlace({required CommerceType commerceType}) async {
     try {
-      CollectionReference eventTags =
-          FirebaseFirestore.instance.collection('type_of_place');
+      CollectionReference commerceTypes =
+          FirebaseFirestore.instance.collection('commerce_types');
 
-      await eventTags.doc(eventTag.id).set(
-            eventTag.toMap(),
+      await commerceTypes.doc(commerceType.id).set(
+            commerceType.toMap(),
           );
-      print('Tag criada ${eventTag.tagName}');
+      print('Tag criada ${commerceType.commerceTypeName}');
     } on FirebaseException catch (e) {
       print('Firebae excpetion $e');
     } catch (e, st) {
