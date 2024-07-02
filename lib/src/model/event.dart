@@ -45,7 +45,7 @@ class Event {
     required this.longitude,
     required this.startingDate,
     required this.finishDate,
-  }) : id = id ?? Uuid().v4();
+  }) : id = id ?? const Uuid().v4();
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id': id,

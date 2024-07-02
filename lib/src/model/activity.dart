@@ -7,12 +7,10 @@ class Activity {
   String id;
   String name;
   DateTime start;
-  DateTime end;
   Activity({
     String? id,
     required this.name,
     required this.start,
-    required this.end,
   }) : id = id ?? const Uuid().v4();
 
   Map<String, dynamic> toMap() {
@@ -20,7 +18,6 @@ class Activity {
       'id': id,
       'name': name,
       'start': start.millisecondsSinceEpoch,
-      'end': end.millisecondsSinceEpoch,
     };
   }
 
@@ -29,7 +26,6 @@ class Activity {
       id: map['id'] as String,
       name: map['name'] as String,
       start: DateTime.fromMillisecondsSinceEpoch(map['start'] as int),
-      end: DateTime.fromMillisecondsSinceEpoch(map['end'] as int),
     );
   }
 

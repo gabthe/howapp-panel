@@ -30,8 +30,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   flutter_web_plugins:
     sdk: flutter
+  # howapp_models:
+  #   path: ../../flutter packages/howapp_models/
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -43,6 +47,13 @@ dependencies:
   firebase_core: ^2.31.1
   uuid: ^4.4.0
   cloud_firestore: ^4.17.4
+  file_picker: ^8.0.5
+  image_cropper: ^7.0.5
+  crop_image: ^1.0.13
+  google_maps_flutter: ^2.2.8
+  google_maps_flutter_web: ^0.5.8
+  dio: ^5.4.3+1
+  intl: ^0.19.0
 
 dev_dependencies:
   flutter_test:

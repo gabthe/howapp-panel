@@ -46,38 +46,69 @@ class HomePage extends StatelessWidget {
           Container(
             width: double.infinity,
             height: 200,
-            color: Colors.grey,
+            color: Colors.grey[200],
             child: GridView(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 mainAxisExtent: 100,
               ),
               children: [
-                Container(
-                  height: 5,
-                  width: 5,
-                  color: Colors.red,
-                  child: const Text('Ola'),
+                HomeBigButtonWidget(
+                  buttonText: 'Criar novo evento',
+                  onPressed: () {
+                    context.goNamed("create-event");
+                  },
                 ),
-                Container(
-                  height: 5,
-                  width: 5,
-                  color: Colors.yellow,
+                HomeBigButtonWidget(
+                  buttonText: 'Criar nova experiencia',
+                  onPressed: () {},
                 ),
-                Container(
-                  height: 5,
-                  width: 5,
-                  color: Colors.green,
+                HomeBigButtonWidget(
+                  buttonText: 'Eventos',
+                  onPressed: () {},
                 ),
-                Container(
-                  height: 5,
-                  width: 5,
-                  color: Colors.black,
+                HomeBigButtonWidget(
+                  buttonText: 'Usuarios',
+                  onPressed: () {},
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class HomeBigButtonWidget extends StatelessWidget {
+  final String buttonText;
+  final Function()? onPressed;
+  const HomeBigButtonWidget({
+    required this.buttonText,
+    required this.onPressed,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(6),
+          ),
+          backgroundColor: Colors.white,
+        ),
+        onPressed: onPressed,
+        child: Text(
+          buttonText,
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
       ),
     );
   }
