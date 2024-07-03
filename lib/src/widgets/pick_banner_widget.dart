@@ -9,14 +9,16 @@ final _bannerBackgroundColorProvider = StateProvider<Color>((ref) {
 });
 
 class PickBannerWidget extends ConsumerWidget {
+  final String? id;
   const PickBannerWidget({
     super.key,
+    required this.id,
   });
 
   @override
   Widget build(BuildContext context, ref) {
-    var viewmodel = ref.watch(createEventViewmodelProvider);
-    var notifier = ref.read(createEventViewmodelProvider.notifier);
+    var viewmodel = ref.watch(createEventViewmodelProvider(id));
+    var notifier = ref.read(createEventViewmodelProvider(id).notifier);
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (event) {

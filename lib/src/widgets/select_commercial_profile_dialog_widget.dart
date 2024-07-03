@@ -12,8 +12,8 @@ class SelectComercialProfileDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, ref) {
-    var viewmodel = ref.watch(createEventViewmodelProvider);
-    var notifier = ref.read(createEventViewmodelProvider.notifier);
+    var viewmodel = ref.watch(createEventViewmodelProvider(null));
+    var notifier = ref.read(createEventViewmodelProvider(null).notifier);
     return AlertDialog(
       title: const Text('Lista de perfis comerciais'),
       content: SizedBox(

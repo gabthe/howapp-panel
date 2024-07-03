@@ -2,107 +2,130 @@
 import 'dart:convert';
 
 import 'package:howapp_panel/src/model/activity.dart';
-import 'package:howapp_panel/src/model/personal_profile.dart';
-import 'package:uuid/uuid.dart';
+import 'package:howapp_panel/src/model/event_tag.dart';
+import 'package:howapp_panel/src/model/profile_resume.dart';
 
 class Event {
-  late String id;
-  String? publisherId;
-  bool isHighlighted;
+  String id;
+  String creatorId;
+  String creatorName;
+  String creatorUsername;
+  String creatorProfilePictureUrl;
+  String creatorBannerPictureUrl;
+  String photoUrl;
+  String bannerUrl;
+  String carouselSmallUrl;
+  String carouselBigUrl;
+  String cardImageUrl;
   String name;
   String description;
-  bool hasTicket;
-  bool hasSuggestedLook;
-  List<PersonalProfile> interestedList;
-  List<Activity> schedule;
-  String photoURL;
-  String commerceName;
-  String bannerURL;
-  String address;
-  String city;
-  String livingState;
+  String fullAdress;
   double latitude;
   double longitude;
-  DateTime startingDate;
-  DateTime finishDate;
+  DateTime date;
+  bool hasTicketSelling;
+  bool hasHowStore;
+  bool isHighlighted;
+  int? highlightIndex;
+  List<Activity> activities;
+  List<EventTag> eventTags;
+  List<ProfileResume> interestedList;
   Event({
-    String? id,
-    this.publisherId,
-    required this.isHighlighted,
+    required this.id,
+    required this.creatorId,
+    required this.creatorName,
+    required this.creatorUsername,
+    required this.creatorProfilePictureUrl,
+    required this.creatorBannerPictureUrl,
+    required this.photoUrl,
+    required this.bannerUrl,
+    required this.carouselSmallUrl,
+    required this.carouselBigUrl,
     required this.name,
     required this.description,
-    required this.hasTicket,
-    required this.hasSuggestedLook,
-    required this.interestedList,
-    required this.schedule,
-    required this.photoURL,
-    required this.commerceName,
-    required this.bannerURL,
-    required this.address,
-    required this.city,
-    required this.livingState,
+    required this.fullAdress,
     required this.latitude,
     required this.longitude,
-    required this.startingDate,
-    required this.finishDate,
-  }) : id = id ?? const Uuid().v4();
+    required this.date,
+    required this.hasTicketSelling,
+    required this.hasHowStore,
+    required this.isHighlighted,
+    this.highlightIndex,
+    required this.activities,
+    required this.eventTags,
+    required this.interestedList,
+    required this.cardImageUrl,
+  });
+
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id': id,
-      'publisherId': publisherId,
-      'isHighlighted': isHighlighted,
+      'creatorId': creatorId,
+      'creatorName': creatorName,
+      'creatorUsername': creatorUsername,
+      'creatorProfilePictureUrl': creatorProfilePictureUrl,
+      'creatorBannerPictureUrl': creatorBannerPictureUrl,
+      'photoUrl': photoUrl,
+      'bannerUrl': bannerUrl,
+      'cardImageUrl': cardImageUrl,
+      'carouselSmallUrl': carouselSmallUrl,
+      'carouselBigUrl': carouselBigUrl,
       'name': name,
       'description': description,
-      'hasTicket': hasTicket,
-      'hasSuggestedLook': hasSuggestedLook,
-      'interestedList': interestedList.map((x) => x.toMap()).toList(),
-      'schedule': schedule.map((x) => x.toMap()).toList(),
-      'photoURL': photoURL,
-      'commerceName': commerceName,
-      'bannerURL': bannerURL,
-      'address': address,
-      'city': city,
-      'livingState': livingState,
+      'fullAdress': fullAdress,
       'latitude': latitude,
       'longitude': longitude,
-      'startingDate': startingDate.millisecondsSinceEpoch,
-      'finishDate': finishDate.millisecondsSinceEpoch,
+      'date': date.millisecondsSinceEpoch,
+      'hasTicketSelling': hasTicketSelling,
+      'hasHowStore': hasHowStore,
+      'isHighlighted': isHighlighted,
+      'highlightIndex': highlightIndex,
+      'activities': activities.map((x) => x.toMap()).toList(),
+      'eventTags': eventTags.map((x) => x.toMap()).toList(),
+      'interestedList': interestedList.map((x) => x.toMap()).toList(),
     };
   }
 
   factory Event.fromMap(Map<String, dynamic> map) {
     return Event(
-      id: map["id"] as String,
-      publisherId:
-          map['publisherId'] != null ? map['publisherId'] as String : null,
-      isHighlighted: map['isHighlighted'] as bool,
+      id: map['id'] as String,
+      creatorId: map['creatorId'] as String,
+      creatorName: map['creatorName'] as String,
+      creatorUsername: map['creatorUsername'] as String,
+      creatorProfilePictureUrl: map['creatorProfilePictureUrl'] as String,
+      creatorBannerPictureUrl: map['creatorBannerPictureUrl'] as String,
+      photoUrl: map['photoUrl'] as String,
+      bannerUrl: map['bannerUrl'] as String,
+      cardImageUrl:
+          map['cardImageUrl'] != null ? map['cardImageUrl'] as String : '',
+      carouselSmallUrl: map['carouselSmallUrl'] as String,
+      carouselBigUrl: map['carouselBigUrl'] as String,
       name: map['name'] as String,
       description: map['description'] as String,
-      hasTicket: map['hasTicket'] as bool,
-      hasSuggestedLook: map['hasSuggestedLook'] as bool,
-      interestedList: List<PersonalProfile>.from(
-        (map['interestedList'] as List<dynamic>).map<PersonalProfile>(
-          (x) => PersonalProfile.fromMap(x as Map<String, dynamic>),
-        ),
-      ),
-      schedule: List<Activity>.from(
-        (map['schedule'] as List<dynamic>).map<Activity>(
+      fullAdress: map['fullAdress'] as String,
+      latitude: map['latitude'] as double,
+      longitude: map['longitude'] as double,
+      date: DateTime.fromMillisecondsSinceEpoch(map['date'] as int),
+      hasTicketSelling: map['hasTicketSelling'] as bool,
+      hasHowStore: map['hasHowStore'] as bool,
+      isHighlighted: map['isHighlighted'] as bool,
+      highlightIndex:
+          map['highlightIndex'] != null ? map['highlightIndex'] as int : null,
+      activities: List<Activity>.from(
+        (map['activities'] as List<dynamic>).map<Activity>(
           (x) => Activity.fromMap(x as Map<String, dynamic>),
         ),
       ),
-      photoURL: map['photoURL'] as String,
-      commerceName: map['commerceName'] != null
-          ? map['commerceName'] as String
-          : "Gabiru Eventos",
-      bannerURL: map['bannerURL'] as String,
-      address: map['address'] as String,
-      city: map['city'] as String,
-      livingState: map['livingState'] as String,
-      latitude: map['latitude'] as double,
-      longitude: map['longitude'] as double,
-      startingDate:
-          DateTime.fromMillisecondsSinceEpoch(map['startingDate'] as int),
-      finishDate: DateTime.fromMillisecondsSinceEpoch(map['finishDate'] as int),
+      eventTags: List<EventTag>.from(
+        (map['eventTags'] as List<dynamic>).map<EventTag>(
+          (x) => EventTag.fromMap(x as Map<String, dynamic>),
+        ),
+      ),
+      interestedList: List<ProfileResume>.from(
+        (map['interestedList'] as List<dynamic>).map<ProfileResume>(
+          (x) => ProfileResume.fromMap(x as Map<String, dynamic>),
+        ),
+      ),
     );
   }
 
@@ -110,9 +133,4 @@ class Event {
 
   factory Event.fromJson(String source) =>
       Event.fromMap(json.decode(source) as Map<String, dynamic>);
-
-  @override
-  String toString() {
-    return 'Event(id: $id, name: $name, description: $description, hasTicket: $hasTicket, hasSuggestedLook: $hasSuggestedLook, interestedList: $interestedList, schedule: $schedule, photoURL: $photoURL, bannerURL: $bannerURL, address: $address, city: $city, livingState: $livingState, latitude: $latitude, longitude: $longitude, startingDate: $startingDate, finishDate: $finishDate)';
-  }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:howapp_panel/src/repository/user_repo.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -47,7 +46,7 @@ class HomePage extends ConsumerWidget {
         children: [
           Container(
             width: double.infinity,
-            height: 200,
+            height: 300,
             color: Colors.grey[200],
             child: GridView(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -67,11 +66,19 @@ class HomePage extends ConsumerWidget {
                 ),
                 HomeBigButtonWidget(
                   buttonText: 'Eventos',
-                  onPressed: () {},
+                  onPressed: () {
+                    context.goNamed("events");
+                  },
                 ),
                 HomeBigButtonWidget(
                   buttonText: 'Usuarios',
                   onPressed: () {},
+                ),
+                HomeBigButtonWidget(
+                  buttonText: 'Destaques',
+                  onPressed: () {
+                    context.goNamed("highlight");
+                  },
                 ),
               ],
             ),

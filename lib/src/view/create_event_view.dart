@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:howapp_panel/src/model/activity.dart';
 import 'package:howapp_panel/src/model/event_tag.dart';
+import 'package:howapp_panel/src/utils/api_state.dart';
 import 'package:howapp_panel/src/utils/crop_dialog.dart';
 import 'package:howapp_panel/src/utils/get_16x9_proportion.dart';
 import 'package:howapp_panel/src/viewmodel/create_event_viewmodel.dart';
@@ -40,12 +41,16 @@ final _photoBackgroundColorProvider = StateProvider<Color>((ref) {
 });
 
 class CreateEventView extends ConsumerWidget {
-  const CreateEventView({super.key});
+  final String? id;
+  const CreateEventView({
+    super.key,
+    required this.id,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var viewmodel = ref.watch(createEventViewmodelProvider);
-    var notifier = ref.read(createEventViewmodelProvider.notifier);
+    var viewmodel = ref.watch(createEventViewmodelProvider(id));
+    var notifier = ref.read(createEventViewmodelProvider(id).notifier);
     final List<int> days = List<int>.generate(31, (index) => index + 1);
     final List<int> months = List<int>.generate(12, (index) => index + 1);
     final List<int> years = [
@@ -58,314 +63,638 @@ class CreateEventView extends ConsumerWidget {
     final List<int> minutes = List<int>.generate(60, (index) => index);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Criar novo evento'),
+        leading: IconButton(
+          onPressed: () {
+            GoRouter.of(context).pop();
+          },
+          icon: Icon(Icons.arrow_back_ios),
+        ),
+        title: Text(id == null ? 'Criar novo evento' : 'Editar evento'),
       ),
-      body: SingleChildScrollView(
-        child: Form(
-          child: Center(
-            child: Container(
-              color: Colors.grey[100],
-              child: Column(
-                children: [
-                  EventInfosWidget(
-                    viewmodel: viewmodel,
-                    notifier: notifier,
-                  ),
-                  SizedBox(
-                    width: 600,
-                    child: TextFormField(
-                      onChanged: (value) {
-                        notifier.eventNameOnChange(value);
-                      },
-                      decoration: const InputDecoration(
-                        labelText: 'Nome do evento',
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Form(
+              child: Center(
+                child: Container(
+                  color: Colors.grey[100],
+                  child: Column(
+                    children: [
+                      EventInfosWidget(
+                        viewmodel: viewmodel,
+                        notifier: notifier,
+                        id: id,
                       ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 600,
-                    child: TextFormField(
-                      onChanged: (value) {
-                        notifier.eventDescriptionOnChange(value);
-                      },
-                      decoration: const InputDecoration(
-                        labelText: 'Descrição',
+                      SizedBox(
+                        width: 600,
+                        child: TextFormField(
+                          onChanged: (value) {
+                            notifier.eventNameOnChange(value);
+                          },
+                          decoration: const InputDecoration(
+                            labelText: 'Nome do evento',
+                          ),
+                        ),
                       ),
-                    ),
+                      SizedBox(
+                        width: 600,
+                        child: TextFormField(
+                          onChanged: (value) {
+                            notifier.eventDescriptionOnChange(value);
+                          },
+                          decoration: const InputDecoration(
+                            labelText: 'Descrição',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        width: 600,
+                        child: ListTile(
+                          selected: viewmodel.hasTicketSelling,
+                          title: const Text('Venda de ingresso'),
+                          trailing: Switch(
+                            value: viewmodel.hasTicketSelling,
+                            onChanged: (bool value) {
+                              notifier.toggleTicketSelling();
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        width: 600,
+                        child: ListTile(
+                          selected: viewmodel.hasHowStore,
+                          title: const Text('How Store'),
+                          trailing: Switch(
+                            value: viewmodel.hasHowStore,
+                            onChanged: (bool value) {
+                              notifier.toggleHasHowStore();
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      EventDateWidget(
+                        days: days,
+                        viewmodel: viewmodel,
+                        months: months,
+                        years: years,
+                        hours: hours,
+                        minutes: minutes,
+                        id: id,
+                      ),
+                      const SizedBox(height: 12),
+                      if (viewmodel.selectedLocalization == null)
+                        EmptyLocalizationWidget(
+                          viewmodel: viewmodel,
+                          notifier: notifier,
+                        ),
+                      if (viewmodel.selectedLocalization != null)
+                        ShowSelectedLocalizationWidget(
+                          viewmodel: viewmodel,
+                          notifier: notifier,
+                        ),
+                      const SizedBox(height: 12),
+                      EventCreatorWidget(
+                        viewmodel: viewmodel,
+                      ),
+                      if (viewmodel.selectedEventCreator != null)
+                        const SizedBox(height: 12),
+                      if (viewmodel.selectedEventCreator != null)
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          width: 600,
+                          child: ListTile(
+                            selected: viewmodel.useCreatorPhotoAsEventPhoto,
+                            title: const Text(
+                                'Usar foto do criador do evento como foto do evento'),
+                            trailing: Switch(
+                              value: viewmodel.useCreatorPhotoAsEventPhoto,
+                              onChanged: (bool value) {
+                                notifier.toggleUseCreatorPhotoAsEventPhoto();
+                              },
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 12),
+                      EventTagsBigButtonWidget(
+                        viewmodel: viewmodel,
+                        notifier: notifier,
+                        id: id,
+                      ),
+                      const SizedBox(height: 12),
+                      if (viewmodel.listOfEventActivities.isEmpty)
+                        EmptyEventActivitiesWidget(
+                          days: days,
+                          months: months,
+                          years: years,
+                          hours: hours,
+                          minutes: minutes,
+                          id: id,
+                        ),
+                      if (viewmodel.listOfEventActivities.isNotEmpty)
+                        ListOfActivitiesWidget(
+                          viewmodel: viewmodel,
+                          days: days,
+                          months: months,
+                          years: years,
+                          hours: hours,
+                          minutes: minutes,
+                          id: id,
+                        ),
+                      const SizedBox(height: 12),
+                      MediaKitButtonWidget(
+                        id: id,
+                      ),
+                      const SizedBox(height: 12),
+                      if (viewmodel.creatingEventInFirestore !=
+                          ApiState.pending)
+                        SizedBox(
+                          width: 600,
+                          height: 40,
+                          child: ElevatedButton(
+                            child: const Text('Criar evento'),
+                            onPressed: () async {
+                              var errorMessage = notifier.validateEventForm();
+                              if (errorMessage == null) {
+                                await notifier.createEvent();
+                                if (context.mounted) {
+                                  ref.invalidate(createEventViewmodelProvider);
+
+                                  GoRouter.of(context)
+                                      .pushReplacementNamed('home');
+                                  showSuccessSnackbar(context, 'Evento criado');
+                                }
+                              } else {
+                                showErrorSnackbar(context, errorMessage);
+                              }
+                            },
+                          ),
+                        ),
+                      const SizedBox(height: 64),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  EventDateWidget(
-                    days: days,
-                    viewmodel: viewmodel,
-                    months: months,
-                    years: years,
-                    hours: hours,
-                    minutes: minutes,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 15,
+            right: 15,
+            child: EventCreationHelperWidget(viewmodel: viewmodel),
+          ),
+          if (viewmodel.creatingEventInFirestore == ApiState.pending ||
+              viewmodel.fetchingEventData == ApiState.pending)
+            Container(
+              color: Colors.grey.withOpacity(0.5),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+void showErrorSnackbar(
+  BuildContext context,
+  String message,
+) {
+  final snackBar = SnackBar(
+    content: Text(message),
+    backgroundColor: Colors.red,
+  );
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}
+
+void showSuccessSnackbar(
+  BuildContext context,
+  String message,
+) {
+  final snackBar = SnackBar(
+    content: Text(message),
+    backgroundColor: Colors.green,
+  );
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}
+
+class EventCreationHelperWidget extends StatelessWidget {
+  const EventCreationHelperWidget({
+    super.key,
+    required this.viewmodel,
+  });
+
+  final CreateEventViewmodel viewmodel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 330,
+      height: 300,
+      decoration: BoxDecoration(
+        color: Colors.grey[300]!.withOpacity(0.7),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      padding: EdgeInsets.all(16),
+      child: Expanded(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Checklist'),
+              SizedBox(
+                height: 50,
+                child: CheckboxListTile(
+                  title: const Text(
+                    'Preencher nome',
+                    style: TextStyle(fontSize: 12),
                   ),
-                  const SizedBox(height: 12),
-                  if (viewmodel.selectedLocalization == null)
-                    EmptyLocalizationWidget(
-                      viewmodel: viewmodel,
-                      notifier: notifier,
-                    ),
-                  if (viewmodel.selectedLocalization != null)
-                    ShowSelectedLocalizationWidget(
-                      viewmodel: viewmodel,
-                      notifier: notifier,
-                    ),
-                  const SizedBox(height: 12),
-                  EventCreatorWidget(
-                    viewmodel: viewmodel,
+                  value: viewmodel.eventNameOnChangeString.isNotEmpty,
+                  onChanged: (bool? value) {},
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              ),
+              SizedBox(
+                height: 50,
+                child: CheckboxListTile(
+                  title: const Text(
+                    'Preencher descrição',
+                    style: TextStyle(fontSize: 12),
                   ),
-                  const SizedBox(height: 12),
-                  EventTagsBigButtonWidget(
-                      viewmodel: viewmodel, notifier: notifier),
-                  const SizedBox(height: 12),
-                  if (viewmodel.listOfEventActivities.isEmpty)
-                    EmptyEventActivitiesWidget(
-                      days: days,
-                      months: months,
-                      years: years,
-                      hours: hours,
-                      minutes: minutes,
-                    ),
-                  if (viewmodel.listOfEventActivities.isNotEmpty)
-                    ListOfActivitiesWidget(
-                      viewmodel: viewmodel,
-                      days: days,
-                      months: months,
-                      years: years,
-                      hours: hours,
-                      minutes: minutes,
-                    ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: 600,
-                    height: 40,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return Dialog(
-                              child: Consumer(
-                                builder: (context, ref, child) {
-                                  var viewmodel =
-                                      ref.watch(createEventViewmodelProvider);
-                                  var notifier = ref.read(
-                                      createEventViewmodelProvider.notifier);
-                                  return Container(
-                                    padding: const EdgeInsets.all(8),
-                                    width: 1000,
-                                    height: 800,
-                                    child: Column(
+                  value: viewmodel.eventDescritionOnChangeString.isNotEmpty,
+                  onChanged: (bool? value) {},
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              ),
+              SizedBox(
+                height: 50,
+                child: CheckboxListTile(
+                  title: const Text(
+                    'Selecionar data',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  value: viewmodel.changedDateOnce,
+                  onChanged: (bool? value) {},
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              ),
+              SizedBox(
+                height: 50,
+                child: CheckboxListTile(
+                  title: const Text(
+                    'Selecionar local',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  value: viewmodel.selectedLocalization != null,
+                  onChanged: (bool? value) {},
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              ),
+              SizedBox(
+                height: 50,
+                child: CheckboxListTile(
+                  title: const Text(
+                    'Selecionar foto do evento',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  value: viewmodel.pickedPhoto != null ||
+                      viewmodel.useCreatorPhotoAsEventPhoto,
+                  onChanged: (bool? value) {},
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              ),
+              SizedBox(
+                height: 50,
+                child: CheckboxListTile(
+                  title: const Text(
+                    'Selecionar perfil do criador',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  value: viewmodel.selectedEventCreator != null,
+                  onChanged: (bool? value) {},
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              ),
+              SizedBox(
+                height: 50,
+                child: CheckboxListTile(
+                  title: const Text(
+                    'Selecionar banner',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  value: viewmodel.pickedBanner != null,
+                  onChanged: (bool? value) {},
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              ),
+              SizedBox(
+                height: 50,
+                child: CheckboxListTile(
+                  title: const Text(
+                    'Preencher tags',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  value: viewmodel.selectedEventTags.isNotEmpty,
+                  onChanged: (bool? value) {},
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              ),
+              SizedBox(
+                height: 50,
+                child: CheckboxListTile(
+                  title: const Text(
+                    'Selecionar imagem grande do carrossel',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  value: viewmodel.pickedCarouselBigImage != null,
+                  onChanged: (bool? value) {},
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              ),
+              SizedBox(
+                height: 50,
+                child: CheckboxListTile(
+                  title: const Text(
+                    'Selecionar imagem pequena do carrossel ',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  value: viewmodel.pickedCarouselSmallImage != null,
+                  onChanged: (bool? value) {},
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              ),
+              SizedBox(
+                height: 50,
+                child: CheckboxListTile(
+                  title: const Text(
+                    'Selecionar imagem do card ',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  value: viewmodel.pickedCardImage != null,
+                  onChanged: (bool? value) {},
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              ),
+              SizedBox(
+                height: 50,
+                child: CheckboxListTile(
+                  title: const Text(
+                    'Preencher cronograma',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  value: viewmodel.listOfEventActivities.isNotEmpty,
+                  onChanged: (bool? value) {},
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class MediaKitButtonWidget extends StatelessWidget {
+  final String? id;
+  const MediaKitButtonWidget({
+    super.key,
+    required this.id,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 600,
+      height: 40,
+      child: ElevatedButton(
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return Dialog(
+                child: Consumer(
+                  builder: (context, ref, child) {
+                    var viewmodel = ref.watch(createEventViewmodelProvider(id));
+                    var notifier =
+                        ref.read(createEventViewmodelProvider(id).notifier);
+                    return Container(
+                      padding: const EdgeInsets.all(8),
+                      width: 1000,
+                      height: 800,
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  GoRouter.of(context).pop();
+                                },
+                                icon: Icon(Icons.arrow_back_ios),
+                              ),
+                              Text('Media kit'),
+                            ],
+                          ),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  SizedBox(
+                                    height: 900,
+                                    width: 900,
+                                    child: GridView(
+                                      gridDelegate:
+                                          const SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: 2,
+                                        crossAxisSpacing: 20,
+                                        mainAxisSpacing: 20,
+                                      ),
                                       children: [
-                                        Row(
-                                          children: [
-                                            IconButton(
-                                              onPressed: () {
-                                                GoRouter.of(context).pop();
+                                        if (viewmodel
+                                            .useCreatorPhotoAsEventPhoto)
+                                          SizedBox(
+                                            height: 500,
+                                            width: 500,
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(500),
+                                              child: Image.network(
+                                                viewmodel.selectedEventCreator!
+                                                    .profilePictureUrl,
+                                              ),
+                                            ),
+                                          ),
+                                        if (!viewmodel
+                                            .useCreatorPhotoAsEventPhoto)
+                                          Center(
+                                            child: ImageMediaKitWidget(
+                                              borderRadius: 500,
+                                              colors: Colors.grey[300]!,
+                                              height: 500,
+                                              width: 500,
+                                              onEnter: (p0) {},
+                                              onExit: (p0) {},
+                                              imageMemory:
+                                                  viewmodel.pickedPhoto,
+                                              onTap: () async {
+                                                FilePickerResult? result =
+                                                    await FilePicker.platform
+                                                        .pickFiles(
+                                                  type: FileType.image,
+                                                );
+                                                if (result?.files.first.bytes !=
+                                                    null) {
+                                                  if (context.mounted) {
+                                                    cropDialog(
+                                                      context,
+                                                      viewmodel,
+                                                      notifier,
+                                                      result!
+                                                          .files.first.bytes!,
+                                                      viewmodel
+                                                          .photoCropController,
+                                                      true,
+                                                    );
+                                                  }
+                                                }
                                               },
-                                              icon: Icon(Icons.arrow_back_ios),
+                                              text: 'Foto (4x4)',
                                             ),
-                                            Text('Media kit'),
-                                          ],
+                                          ),
+                                        Center(
+                                          child: ImageMediaKitWidget(
+                                            colors: Colors.grey[300]!,
+                                            width: 500,
+                                            height: getProportion(500),
+                                            onEnter: (p0) {},
+                                            onExit: (p0) {},
+                                            imageMemory: viewmodel.pickedBanner,
+                                            onTap: () async {
+                                              FilePickerResult? result =
+                                                  await FilePicker.platform
+                                                      .pickFiles(
+                                                type: FileType.image,
+                                              );
+                                              if (result?.files.first.bytes !=
+                                                  null) {
+                                                if (context.mounted) {
+                                                  cropDialog(
+                                                    context,
+                                                    viewmodel,
+                                                    notifier,
+                                                    result!.files.first.bytes!,
+                                                    viewmodel
+                                                        .bannerCropController,
+                                                    false,
+                                                  );
+                                                }
+                                              }
+                                            },
+                                            text: 'Banner (16x9)',
+                                          ),
                                         ),
-                                        Expanded(
-                                          child: SingleChildScrollView(
-                                            child: Column(
-                                              children: [
-                                                SizedBox(
-                                                  height: 900,
-                                                  width: 900,
-                                                  child: GridView(
-                                                    gridDelegate:
-                                                        const SliverGridDelegateWithFixedCrossAxisCount(
-                                                      crossAxisCount: 2,
-                                                      crossAxisSpacing: 20,
-                                                      mainAxisSpacing: 20,
-                                                    ),
-                                                    children: [
-                                                      Center(
-                                                        child:
-                                                            ImageMediaKitWidget(
-                                                          borderRadius: 500,
-                                                          colors:
-                                                              Colors.grey[300]!,
-                                                          height: 500,
-                                                          width: 500,
-                                                          onEnter: (p0) {},
-                                                          onExit: (p0) {},
-                                                          imageMemory: viewmodel
-                                                              .pickedPhoto,
-                                                          onTap: () async {
-                                                            FilePickerResult?
-                                                                result =
-                                                                await FilePicker
-                                                                    .platform
-                                                                    .pickFiles(
-                                                              type: FileType
-                                                                  .image,
-                                                            );
-                                                            if (result
-                                                                    ?.files
-                                                                    .first
-                                                                    .bytes !=
-                                                                null) {
-                                                              if (context
-                                                                  .mounted) {
-                                                                cropDialog(
-                                                                  context,
-                                                                  viewmodel,
-                                                                  notifier,
-                                                                  result!
-                                                                      .files
-                                                                      .first
-                                                                      .bytes!,
-                                                                  viewmodel
-                                                                      .photoCropController,
-                                                                  true,
-                                                                );
-                                                              }
-                                                            }
-                                                          },
-                                                          text: 'Foto (4x4)',
-                                                        ),
-                                                      ),
-                                                      Center(
-                                                        child:
-                                                            ImageMediaKitWidget(
-                                                          colors:
-                                                              Colors.grey[300]!,
-                                                          width: 500,
-                                                          height: getProportion(
-                                                              500),
-                                                          onEnter: (p0) {},
-                                                          onExit: (p0) {},
-                                                          imageMemory: viewmodel
-                                                              .pickedBanner,
-                                                          onTap: () async {
-                                                            FilePickerResult?
-                                                                result =
-                                                                await FilePicker
-                                                                    .platform
-                                                                    .pickFiles(
-                                                              type: FileType
-                                                                  .image,
-                                                            );
-                                                            if (result
-                                                                    ?.files
-                                                                    .first
-                                                                    .bytes !=
-                                                                null) {
-                                                              if (context
-                                                                  .mounted) {
-                                                                cropDialog(
-                                                                  context,
-                                                                  viewmodel,
-                                                                  notifier,
-                                                                  result!
-                                                                      .files
-                                                                      .first
-                                                                      .bytes!,
-                                                                  viewmodel
-                                                                      .bannerCropController,
-                                                                  false,
-                                                                );
-                                                              }
-                                                            }
-                                                          },
-                                                          text: 'Banner (16x9)',
-                                                        ),
-                                                      ),
-                                                      ImageMediaKitWidget(
-                                                        colors:
-                                                            Colors.grey[300]!,
-                                                        width: 500,
-                                                        height: 500,
-                                                        onEnter: (p0) {},
-                                                        onExit: (p0) {},
-                                                        imageMemory: viewmodel
-                                                            .pickedCarrocelBigImage,
-                                                        onTap: () async {
-                                                          var image =
-                                                              await getImageAndCrop(
-                                                            viewmodel
-                                                                .carrocelBigImageCropController,
-                                                            context,
-                                                          );
-                                                          if (image != null) {
-                                                            notifier
-                                                                .setEventBigCarrouselImage(
-                                                                    image);
-                                                          }
-                                                        },
-                                                        text:
-                                                            'Foto carrocel grande (4x4)',
-                                                      ),
-                                                      Center(
-                                                        child:
-                                                            ImageMediaKitWidget(
-                                                          colors:
-                                                              Colors.grey[300]!,
-                                                          width: 250,
-                                                          height: 250,
-                                                          onEnter: (p0) {},
-                                                          onExit: (p0) {},
-                                                          imageMemory: viewmodel
-                                                              .pickedCarrocelSmallImage,
-                                                          onTap: () async {
-                                                            var image =
-                                                                await getImageAndCrop(
-                                                              viewmodel
-                                                                  .carrocelSmallImageCropController,
-                                                              context,
-                                                            );
-                                                            if (image != null) {
-                                                              notifier
-                                                                  .setEventSmalllCarrouselImage(
-                                                                image,
-                                                              );
-                                                            }
-                                                          },
-                                                          text:
-                                                              'Foto carrocel pequeno (2x2)',
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                                        ImageMediaKitWidget(
+                                          colors: Colors.grey[300]!,
+                                          width: 500,
+                                          height: 500,
+                                          onEnter: (p0) {},
+                                          onExit: (p0) {},
+                                          imageMemory:
+                                              viewmodel.pickedCarouselBigImage,
+                                          onTap: () async {
+                                            var image = await getImageAndCrop(
+                                              viewmodel
+                                                  .carouselBigImageCropController,
+                                              context,
+                                            );
+                                            if (image != null) {
+                                              notifier.setEventBigCarouselImage(
+                                                  image);
+                                            }
+                                          },
+                                          text: 'Foto carrocel grande (4x4)',
+                                        ),
+                                        Center(
+                                          child: ImageMediaKitWidget(
+                                            colors: Colors.grey[300]!,
+                                            width: 250,
+                                            height: 250,
+                                            onEnter: (p0) {},
+                                            onExit: (p0) {},
+                                            imageMemory: viewmodel
+                                                .pickedCarouselSmallImage,
+                                            onTap: () async {
+                                              var image = await getImageAndCrop(
+                                                viewmodel
+                                                    .carouselSmallImageCropController,
+                                                context,
+                                              );
+                                              if (image != null) {
+                                                notifier
+                                                    .setEventSmallCarouselImage(
+                                                  image,
+                                                );
+                                              }
+                                            },
+                                            text: 'Foto carrocel pequeno (2x2)',
+                                          ),
+                                        ),
+                                        Center(
+                                          child: ImageMediaKitWidget(
+                                            colors: Colors.grey[300]!,
+                                            width: 400,
+                                            height: 60,
+                                            onEnter: (p0) {},
+                                            onExit: (p0) {},
+                                            imageMemory:
+                                                viewmodel.pickedCardImage,
+                                            onTap: () async {
+                                              var image = await getImageAndCrop(
+                                                viewmodel
+                                                    .cardImageCropController,
+                                                context,
+                                              );
+                                              if (image != null) {
+                                                notifier.setEventCardImage(
+                                                  image,
+                                                );
+                                              }
+                                            },
+                                            text: 'Foto card (20x3)',
                                           ),
                                         ),
                                       ],
                                     ),
-                                  );
-                                },
+                                  ),
+                                ],
                               ),
-                            );
-                          },
-                        );
-                      },
-                      child: const Text('Media kit'),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: 600,
-                    height: 40,
-                    child: ElevatedButton(
-                      child: const Text('Criar evento'),
-                      onPressed: () {},
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-              ),
-            ),
-          ),
-        ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+          );
+        },
+        child: const Text('Media kit'),
       ),
     );
   }
@@ -453,10 +782,12 @@ class MediaKitTextWidget extends StatelessWidget {
 }
 
 class EventTagsBigButtonWidget extends ConsumerWidget {
+  final String? id;
   const EventTagsBigButtonWidget({
     super.key,
     required this.viewmodel,
     required this.notifier,
+    required this.id,
   });
 
   final CreateEventViewmodel viewmodel;
@@ -477,9 +808,10 @@ class EventTagsBigButtonWidget extends ConsumerWidget {
             context: context,
             builder: (context) {
               return Consumer(builder: (context, ref, child) {
-                var currentViewmodel = ref.watch(createEventViewmodelProvider);
+                var currentViewmodel =
+                    ref.watch(createEventViewmodelProvider(id));
                 var currentNotifier =
-                    ref.read(createEventViewmodelProvider.notifier);
+                    ref.read(createEventViewmodelProvider(id).notifier);
                 return Dialog(
                   child: StatefulBuilder(
                     builder: (context, setState) {
@@ -545,7 +877,7 @@ class EventTagsBigButtonWidget extends ConsumerWidget {
                                 width: double.infinity,
                                 decoration: BoxDecoration(
                                   color: Colors.grey[300],
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(24),
                                 ),
                                 child: ListView.builder(
                                   itemCount:
@@ -595,7 +927,7 @@ class EventTagsBigButtonWidget extends ConsumerWidget {
             color: ref.watch(_isMouseOverEventTagsBigButton)
                 ? Colors.grey[400]
                 : Colors.grey[300],
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(24),
           ),
           child: viewmodel.selectedEventTags.isNotEmpty
               ? ListView.builder(
@@ -648,6 +980,7 @@ class EventDateWidget extends StatelessWidget {
     required this.years,
     required this.hours,
     required this.minutes,
+    required this.id,
   });
 
   final List<int> days;
@@ -656,6 +989,7 @@ class EventDateWidget extends StatelessWidget {
   final List<int> years;
   final List<int> hours;
   final List<int> minutes;
+  final String? id;
 
   @override
   Widget build(BuildContext context) {
@@ -671,30 +1005,35 @@ class EventDateWidget extends StatelessWidget {
                 intList: days,
                 type: 'day',
                 initialValue: viewmodel.selectedDay,
+                id: id,
               ),
               const Text('/'),
               DropDownDatePickerWidget(
                 intList: months,
                 type: 'month',
                 initialValue: viewmodel.selectedMonth,
+                id: id,
               ),
               const Text('/'),
               DropDownDatePickerWidget(
                 intList: years,
                 type: 'year',
                 initialValue: viewmodel.selectedYear,
+                id: id,
               ),
               const Text(' : '),
               DropDownDatePickerWidget(
                 intList: hours,
                 type: 'hour',
                 initialValue: viewmodel.selectedHour,
+                id: id,
               ),
               const Text(':'),
               DropDownDatePickerWidget(
                 intList: minutes,
                 type: 'minute',
                 initialValue: viewmodel.selectedMinute,
+                id: id,
               ),
             ],
           ),
@@ -744,11 +1083,11 @@ class EventCreatorWidget extends ConsumerWidget {
                   color: ref.watch(_isMouseOverEventCreatorBigButton)
                       ? Colors.grey[400]
                       : Colors.grey[300],
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(24),
                 ),
                 child: viewmodel.selectedEventCreator != null
                     ? ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(24),
                         child: Image.network(
                           viewmodel.selectedEventCreator!.bannerPictureUrl,
                           fit: BoxFit.contain,
@@ -814,11 +1153,12 @@ class EventCreatorWidget extends ConsumerWidget {
 }
 
 class EventInfosWidget extends ConsumerWidget {
-  const EventInfosWidget({
-    super.key,
-    required this.viewmodel,
-    required this.notifier,
-  });
+  final String? id;
+  const EventInfosWidget(
+      {super.key,
+      required this.viewmodel,
+      required this.notifier,
+      required this.id});
 
   final CreateEventViewmodel viewmodel;
   final CreateEventViewmodelNotifier notifier;
@@ -832,14 +1172,17 @@ class EventInfosWidget extends ConsumerWidget {
         alignment: Alignment.topCenter,
         child: Stack(
           children: [
-            const PickBannerWidget(),
+            PickBannerWidget(id: id),
             Positioned(
               bottom: 0,
               left: 0,
               child: Container(
-                color: viewmodel.pickedBanner == null
-                    ? Colors.transparent
-                    : Colors.black45,
+                decoration: BoxDecoration(
+                  color: viewmodel.pickedBanner == null
+                      ? Colors.transparent
+                      : Colors.black45,
+                  borderRadius: BorderRadius.circular(18),
+                ),
                 width: 800,
                 child: Row(
                   children: [
@@ -876,14 +1219,22 @@ class EventInfosWidget extends ConsumerWidget {
                           backgroundColor:
                               ref.watch(_photoBackgroundColorProvider),
                           radius: 50,
-                          child: viewmodel.pickedPhoto == null
-                              ? const Icon(Icons.photo)
-                              : ClipRRect(
+                          child: viewmodel.useCreatorPhotoAsEventPhoto
+                              ? ClipRRect(
                                   borderRadius: BorderRadius.circular(50),
-                                  child: Image.memory(
-                                    viewmodel.pickedPhoto!,
+                                  child: Image.network(
+                                    viewmodel.selectedEventCreator!
+                                        .profilePictureUrl,
                                   ),
-                                ),
+                                )
+                              : viewmodel.pickedPhoto == null
+                                  ? const Icon(Icons.photo)
+                                  : ClipRRect(
+                                      borderRadius: BorderRadius.circular(50),
+                                      child: Image.memory(
+                                        viewmodel.pickedPhoto!,
+                                      ),
+                                    ),
                         ),
                       ),
                     ),
@@ -1008,64 +1359,66 @@ class EmptyLocalizationWidget extends ConsumerWidget {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   width: 600,
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          IconButton(
-                            onPressed: () {
-                              GoRouter.of(context).pop();
-                            },
-                            icon: const Icon(Icons.arrow_back_ios),
-                          ),
-                          const Text('Selecionar localização do evento'),
-                        ],
-                      ),
-                      SizedBox(
-                        width: 500,
-                        child: TextFormField(
-                          controller: viewmodel.searchInputController,
-                          decoration: InputDecoration(
-                            border: const OutlineInputBorder(),
-                            suffixIcon: IconButton(
-                              onPressed: () async {
-                                notifier.findPlaceFromInput();
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                GoRouter.of(context).pop();
                               },
-                              icon: const Icon(Icons.search),
+                              icon: const Icon(Icons.arrow_back_ios),
                             ),
-                            labelText: 'Pesquisar localização',
+                            const Text('Selecionar localização do evento'),
+                          ],
+                        ),
+                        SizedBox(
+                          width: 500,
+                          child: TextFormField(
+                            controller: viewmodel.searchInputController,
+                            decoration: InputDecoration(
+                              border: const OutlineInputBorder(),
+                              suffixIcon: IconButton(
+                                onPressed: () async {
+                                  notifier.findPlaceFromInput();
+                                },
+                                icon: const Icon(Icons.search),
+                              ),
+                              labelText: 'Pesquisar localização',
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: SizedBox(
-                          width: 500,
-                          height: 500,
-                          child: GoogleMap(
-                            onTap: (argument) {
-                              notifier.createNewMarkerInMap(
-                                argument,
-                              );
-                              GoRouter.of(context).pop();
-                            },
-                            markers: viewmodel.googleMapMarker,
-                            onMapCreated: (controller) {
-                              notifier.setMapController(controller);
-                            },
-                            initialCameraPosition: const CameraPosition(
-                              zoom: 15,
-                              target: LatLng(
-                                -20.815353910716716,
-                                -49.38264553344107,
+                        const SizedBox(height: 12),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: SizedBox(
+                            width: 500,
+                            height: 500,
+                            child: GoogleMap(
+                              onTap: (argument) {
+                                notifier.createNewMarkerInMap(
+                                  argument,
+                                );
+                                GoRouter.of(context).pop();
+                              },
+                              markers: viewmodel.googleMapMarker,
+                              onMapCreated: (controller) {
+                                notifier.setMapController(controller);
+                              },
+                              initialCameraPosition: const CameraPosition(
+                                zoom: 15,
+                                target: LatLng(
+                                  -20.815353910716716,
+                                  -49.38264553344107,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
+                        const SizedBox(height: 12),
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -1079,7 +1432,7 @@ class EmptyLocalizationWidget extends ConsumerWidget {
             color: ref.watch(_isMouseOverMapBigButton)
                 ? Colors.grey[400]
                 : Colors.grey[300],
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(24),
           ),
           child: Center(
             child: Text(
@@ -1104,6 +1457,7 @@ class ListOfActivitiesWidget extends ConsumerWidget {
   final List<int> years;
   final List<int> hours;
   final List<int> minutes;
+  final String? id;
   const ListOfActivitiesWidget({
     super.key,
     required this.viewmodel,
@@ -1112,13 +1466,14 @@ class ListOfActivitiesWidget extends ConsumerWidget {
     required this.years,
     required this.hours,
     required this.minutes,
+    required this.id,
   });
 
   final CreateEventViewmodel viewmodel;
 
   @override
   Widget build(BuildContext context, ref) {
-    var notifier = ref.read(createEventViewmodelProvider.notifier);
+    var notifier = ref.read(createEventViewmodelProvider(id).notifier);
     return InkWell(
       onTap: () {
         showDialog(
@@ -1127,9 +1482,9 @@ class ListOfActivitiesWidget extends ConsumerWidget {
             return Dialog(
               child: Consumer(
                 builder: (context, ref, child) {
-                  var viewmodel = ref.watch(createEventViewmodelProvider);
+                  var viewmodel = ref.watch(createEventViewmodelProvider(id));
                   var notifier =
-                      ref.read(createEventViewmodelProvider.notifier);
+                      ref.read(createEventViewmodelProvider(id).notifier);
 
                   return StatefulBuilder(
                     builder: (context, setState) {
@@ -1164,30 +1519,35 @@ class ListOfActivitiesWidget extends ConsumerWidget {
                                   intList: days,
                                   type: 'activity-day',
                                   initialValue: viewmodel.activityStartDay,
+                                  id: id,
                                 ),
                                 const Text('/'),
                                 DropDownDatePickerWidget(
                                   intList: months,
                                   type: 'activity-month',
                                   initialValue: viewmodel.activityStartMonth,
+                                  id: id,
                                 ),
                                 const Text('/'),
                                 DropDownDatePickerWidget(
                                   intList: years,
                                   type: 'activity-year',
                                   initialValue: viewmodel.activityStartYear,
+                                  id: id,
                                 ),
                                 const Text(' : '),
                                 DropDownDatePickerWidget(
                                   intList: hours,
                                   type: 'activity-hour',
                                   initialValue: viewmodel.activityStartHour,
+                                  id: id,
                                 ),
                                 const Text(':'),
                                 DropDownDatePickerWidget(
                                   intList: minutes,
                                   type: 'activity-minute',
                                   initialValue: viewmodel.activityStartMinute,
+                                  id: id,
                                 ),
                               ],
                             ),
@@ -1280,7 +1640,7 @@ class ListOfActivitiesWidget extends ConsumerWidget {
         height: 400,
         decoration: BoxDecoration(
           color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(24),
         ),
         child: Column(
           children: [
@@ -1351,6 +1711,7 @@ class EmptyEventActivitiesWidget extends ConsumerWidget {
     required List<int> years,
     required List<int> hours,
     required List<int> minutes,
+    required this.id,
   })  : days = days,
         months = months,
         years = years,
@@ -1362,6 +1723,7 @@ class EmptyEventActivitiesWidget extends ConsumerWidget {
   final List<int> years;
   final List<int> hours;
   final List<int> minutes;
+  final String? id;
 
   @override
   Widget build(BuildContext context, ref) {
@@ -1381,9 +1743,9 @@ class EmptyEventActivitiesWidget extends ConsumerWidget {
               return Dialog(
                 child: Consumer(
                   builder: (context, ref, child) {
-                    var viewmodel = ref.watch(createEventViewmodelProvider);
+                    var viewmodel = ref.watch(createEventViewmodelProvider(id));
                     var notifier =
-                        ref.read(createEventViewmodelProvider.notifier);
+                        ref.read(createEventViewmodelProvider(id).notifier);
 
                     return StatefulBuilder(
                       builder: (context, setState) {
@@ -1418,30 +1780,35 @@ class EmptyEventActivitiesWidget extends ConsumerWidget {
                                     intList: days,
                                     type: 'activity-day',
                                     initialValue: viewmodel.activityStartDay,
+                                    id: id,
                                   ),
                                   const Text('/'),
                                   DropDownDatePickerWidget(
                                     intList: months,
                                     type: 'activity-month',
                                     initialValue: viewmodel.activityStartMonth,
+                                    id: id,
                                   ),
                                   const Text('/'),
                                   DropDownDatePickerWidget(
                                     intList: years,
                                     type: 'activity-year',
                                     initialValue: viewmodel.activityStartYear,
+                                    id: id,
                                   ),
                                   const Text(' : '),
                                   DropDownDatePickerWidget(
                                     intList: hours,
                                     type: 'activity-hour',
                                     initialValue: viewmodel.activityStartHour,
+                                    id: id,
                                   ),
                                   const Text(':'),
                                   DropDownDatePickerWidget(
                                     intList: minutes,
                                     type: 'activity-minute',
                                     initialValue: viewmodel.activityStartMinute,
+                                    id: id,
                                   ),
                                 ],
                               ),
@@ -1538,7 +1905,7 @@ class EmptyEventActivitiesWidget extends ConsumerWidget {
             color: ref.watch(_isMouseOverScheduleBigButton)
                 ? Colors.grey[400]
                 : Colors.grey[300],
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(24),
           ),
           child: Center(
             child: Text(
@@ -1566,6 +1933,7 @@ class ButtonsGridWidget extends StatelessWidget {
     required List<int> years,
     required List<int> hours,
     required List<int> minutes,
+    required this.id,
   })  : days = days,
         months = months,
         years = years,
@@ -1578,6 +1946,7 @@ class ButtonsGridWidget extends StatelessWidget {
   final List<int> years;
   final List<int> hours;
   final List<int> minutes;
+  final String? id;
 
   @override
   Widget build(BuildContext context) {
@@ -1630,30 +1999,35 @@ class ButtonsGridWidget extends StatelessWidget {
                                       intList: days,
                                       type: 'day',
                                       initialValue: viewmodel.selectedDay,
+                                      id: id,
                                     ),
                                     const Text('/'),
                                     DropDownDatePickerWidget(
                                       intList: months,
                                       type: 'month',
                                       initialValue: viewmodel.selectedMonth,
+                                      id: id,
                                     ),
                                     const Text('/'),
                                     DropDownDatePickerWidget(
                                       intList: years,
                                       type: 'year',
                                       initialValue: viewmodel.selectedYear,
+                                      id: id,
                                     ),
                                     const Text(' : '),
                                     DropDownDatePickerWidget(
                                       intList: hours,
                                       type: 'hour',
                                       initialValue: viewmodel.selectedHour,
+                                      id: id,
                                     ),
                                     const Text(':'),
                                     DropDownDatePickerWidget(
                                       intList: minutes,
                                       type: 'minute',
                                       initialValue: viewmodel.selectedMinute,
+                                      id: id,
                                     ),
                                   ],
                                 ),
@@ -1688,7 +2062,7 @@ class ShowSelectedLocalizationWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(24),
       child: Stack(
         children: [
           SizedBox(
@@ -1748,7 +2122,7 @@ class ShowSelectedLocalizationWidget extends StatelessWidget {
                             ),
                             const SizedBox(height: 12),
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(24),
                               child: SizedBox(
                                 width: 500,
                                 height: 500,
@@ -1786,7 +2160,7 @@ class ShowSelectedLocalizationWidget extends StatelessWidget {
                 width: 160,
                 decoration: BoxDecoration(
                   color: Colors.black54,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(24),
                 ),
                 child: const Center(
                   child: Text(
@@ -1810,17 +2184,19 @@ class DropDownDatePickerWidget extends ConsumerWidget {
   final List<int> intList;
   final String type;
   final int initialValue;
+  final String? id;
 
   const DropDownDatePickerWidget({
     Key? key,
     required this.intList,
     required this.type,
     required this.initialValue,
+    required this.id,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var notifier = ref.read(createEventViewmodelProvider.notifier);
+    var notifier = ref.read(createEventViewmodelProvider(id).notifier);
     var selectedValue = _getSelectedValue(type, ref);
 
     return DropdownButton<int>(
@@ -1840,7 +2216,7 @@ class DropDownDatePickerWidget extends ConsumerWidget {
   }
 
   int _getSelectedValue(String type, WidgetRef ref) {
-    var viewmodel = ref.watch(createEventViewmodelProvider);
+    var viewmodel = ref.watch(createEventViewmodelProvider(id));
     switch (type) {
       case 'day':
         return viewmodel.selectedDay;

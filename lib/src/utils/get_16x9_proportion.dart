@@ -1,3 +1,4 @@
-getProportion(double proportion) {
-  return (proportion * 9) / 16;
+getProportion(double width) {
+  print('Height for width $width is ${(width * 9) / 16} ');
+  return (width * 9) / 16;
 }

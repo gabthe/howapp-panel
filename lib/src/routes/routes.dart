@@ -2,6 +2,8 @@ import 'package:go_router/go_router.dart';
 import 'package:howapp_panel/src/view/create_event_view.dart';
 import 'package:howapp_panel/src/view/create_tag.dart';
 import 'package:howapp_panel/src/view/create_type_of_place.dart';
+import 'package:howapp_panel/src/view/events_view.dart';
+import 'package:howapp_panel/src/view/highlight_view.dart';
 import 'package:howapp_panel/src/view/home_view.dart';
 
 final routes = GoRouter(
@@ -18,7 +20,24 @@ final routes = GoRouter(
       name: 'create-event',
       path: '/create-event',
       builder: (context, state) {
-        return const CreateEventView();
+        String? id = state.extra as String?;
+        return CreateEventView(
+          id: id,
+        );
+      },
+    ),
+    GoRoute(
+      name: 'events',
+      path: '/events',
+      builder: (context, state) {
+        return const EventsView();
+      },
+    ),
+    GoRoute(
+      name: 'highlight',
+      path: '/highlight',
+      builder: (context, state) {
+        return const HighlightView();
       },
     ),
     // PATH PARAM EXEMPLO
