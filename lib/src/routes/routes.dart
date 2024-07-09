@@ -20,9 +20,10 @@ final routes = GoRouter(
       name: 'create-event',
       path: '/create-event',
       builder: (context, state) {
-        String? id = state.extra as String?;
+        Map<String, dynamic> params = state.extra as Map<String, dynamic>;
         return CreateEventView(
-          id: id,
+          id: params['id'],
+          isExperience: params['isExperience'],
         );
       },
     ),
@@ -30,31 +31,18 @@ final routes = GoRouter(
       name: 'events',
       path: '/events',
       builder: (context, state) {
-        return const EventsView();
+        bool isExperience = state.extra as bool;
+        return EventsView(isExperience: isExperience);
       },
     ),
     GoRoute(
       name: 'highlight',
       path: '/highlight',
       builder: (context, state) {
-        return const HighlightView();
+        bool isExperience = state.extra as bool;
+        return HighlightView(isExperience: isExperience);
       },
     ),
-    // PATH PARAM EXEMPLO
-    //  GoRoute(
-    //   name: 'create-event',
-    //   path: '/create-event/:id',
-    //   builder: (context, state) {
-    //     return const CreateEventView();
-    //   },
-    // ),
-    // COMO NAVEGAR
-    //  GoRouter.of(context).goNamed(
-    //               'create-event',
-    //               pathParameters: {
-    //                 'id': '123',
-    //               },
-    //             );
     GoRoute(
       name: 'create-tag',
       path: '/create-tag',

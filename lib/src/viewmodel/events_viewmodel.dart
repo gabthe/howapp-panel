@@ -20,8 +20,10 @@ class EventsViewmodel {
 
 class EventsViewmodelNotifier extends StateNotifier<EventsViewmodel> {
   EventRepo eventRepo;
+  bool isExperience;
   EventsViewmodelNotifier({
     required this.eventRepo,
+    required this.isExperience,
   }) : super(
           EventsViewmodel(
             events: [],
@@ -31,7 +33,8 @@ class EventsViewmodelNotifier extends StateNotifier<EventsViewmodel> {
   }
   init() async {
     try {
-      List<Event> allEvents = await eventRepo.fetchAllEvents();
+      List<Event> allEvents =
+          await eventRepo.fetchAllEvents(fetchExperiences: isExperience);
       state = state.copyWith(events: allEvents);
     } catch (e) {
       print(e);
@@ -51,8 +54,11 @@ class EventsViewmodelNotifier extends StateNotifier<EventsViewmodel> {
   // }
 }
 
-final eventsViewmodelProvider =
-    StateNotifierProvider.autoDispose<EventsViewmodelNotifier, EventsViewmodel>(
-        (ref) {
-  return EventsViewmodelNotifier(eventRepo: ref.watch(eventRepoProvider));
+final eventsViewmodelProvider = StateNotifierProvider.autoDispose
+    .family<EventsViewmodelNotifier, EventsViewmodel, bool>(
+        (ref, isExperience) {
+  return EventsViewmodelNotifier(
+    eventRepo: ref.watch(eventRepoProvider),
+    isExperience: isExperience,
+  );
 });

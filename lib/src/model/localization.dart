@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 class Localization {
   String numberName;
@@ -29,18 +31,40 @@ class Localization {
 
   factory Localization.fromMap(Map<String, dynamic> map) {
     return Localization(
-      adressName: map['adressName'],
-      cityName: map['cityName'],
-      countryLongName: map['countryLongName'],
-      countryShortName: map['countryShortName'],
-      federativeUnitLongeName: map['federativeUnitLongeName'],
-      federativeUnitShortName: map['federativeUnitShortName'],
-      fullAddress: map['fullAddress'],
-      lat: map['lat'],
-      lng: map['lng'],
-      neighborhoodName: map['neighborhoodName'],
-      numberName: map['numberName'],
-      postalCode: map['postalCode'],
+      numberName: map['numberName'] as String,
+      adressName: map['adressName'] as String,
+      neighborhoodName: map['neighborhoodName'] as String,
+      cityName: map['cityName'] as String,
+      federativeUnitLongeName: map['federativeUnitLongeName'] as String,
+      federativeUnitShortName: map['federativeUnitShortName'] as String,
+      countryShortName: map['countryShortName'] as String,
+      countryLongName: map['countryLongName'] as String,
+      postalCode: map['postalCode'] as String,
+      fullAddress: map['fullAddress'] as String,
+      lat: map['lat'] as double,
+      lng: map['lng'] as double,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'numberName': numberName,
+      'adressName': adressName,
+      'neighborhoodName': neighborhoodName,
+      'cityName': cityName,
+      'federativeUnitLongeName': federativeUnitLongeName,
+      'federativeUnitShortName': federativeUnitShortName,
+      'countryShortName': countryShortName,
+      'countryLongName': countryLongName,
+      'postalCode': postalCode,
+      'fullAddress': fullAddress,
+      'lat': lat,
+      'lng': lng,
+    };
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory Localization.fromJson(String source) =>
+      Localization.fromMap(json.decode(source) as Map<String, dynamic>);
 }

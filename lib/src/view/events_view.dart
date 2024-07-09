@@ -5,12 +5,15 @@ import 'package:howapp_panel/src/utils/get_16x9_proportion.dart';
 import 'package:howapp_panel/src/viewmodel/events_viewmodel.dart';
 
 class EventsView extends ConsumerWidget {
-  const EventsView({super.key});
+  const EventsView({
+    super.key,
+    required this.isExperience,
+  });
+  final bool isExperience;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var viewmodel = ref.watch(eventsViewmodelProvider);
-    var notifier = ref.read(eventsViewmodelProvider.notifier);
+    var viewmodel = ref.watch(eventsViewmodelProvider(isExperience));
     return Scaffold(
       appBar: AppBar(
         title: const Text('Eventos'),
@@ -36,7 +39,10 @@ class EventsView extends ConsumerWidget {
                           onTap: () {
                             GoRouter.of(context).goNamed(
                               'create-event',
-                              extra: event.id,
+                              extra: {
+                                'id': event.id,
+                                'isExperience': event.isExperience,
+                              },
                             );
                           },
                           child: SizedBox(

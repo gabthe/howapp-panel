@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:crop_image/crop_image.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -228,10 +229,12 @@ class CreateEventViewmodelNotifier extends StateNotifier<CreateEventViewmodel> {
   final LocalizationRepository localizationRepo;
   final EventRepo eventRepo;
   final String? eventId;
+  final bool isExperience;
   CreateEventViewmodelNotifier({
     required this.localizationRepo,
     required this.userRepo,
     required this.eventRepo,
+    required this.isExperience,
     this.eventId,
   }) : super(
           CreateEventViewmodel(
@@ -666,6 +669,7 @@ class CreateEventViewmodelNotifier extends StateNotifier<CreateEventViewmodel> {
         fullAdress: state.selectedLocalization!.fullAddress,
         latitude: state.selectedLocalization!.lat,
         longitude: state.selectedLocalization!.lng,
+        isExperience: isExperience,
         date: DateTime.utc(
           state.selectedYear,
           state.selectedMonth,
@@ -681,7 +685,10 @@ class CreateEventViewmodelNotifier extends StateNotifier<CreateEventViewmodel> {
         isHighlighted: state.eventIsHighlighted,
         highlightIndex: state.highlightIndex,
       );
-      await eventRepo.createEventInFirestore(event);
+      await eventRepo.createEventInFirestore(
+        isExperience: isExperience,
+        event: event,
+      );
       state = state.copyWith(creatingEventInFirestore: ApiState.succeeded);
     } catch (e, st) {
       log('create-event-viewmodel-error', error: e, stackTrace: st);
@@ -692,13 +699,34 @@ class CreateEventViewmodelNotifier extends StateNotifier<CreateEventViewmodel> {
   }
 }
 
-final createEventViewmodelProvider = StateNotifierProvider.autoDispose
-    .family<CreateEventViewmodelNotifier, CreateEventViewmodel, String?>(
-        (ref, id) {
+final createEventViewmodelProvider = StateNotifierProvider.autoDispose.family<
+    CreateEventViewmodelNotifier,
+    CreateEventViewmodel,
+    CreateEventViewmodelParams>((ref, params) {
   return CreateEventViewmodelNotifier(
-    eventId: id,
+    eventId: params.eventId,
+    isExperience: params.isExperience,
     localizationRepo: ref.watch(locationRepositoryProvider),
     userRepo: ref.watch(userRepoProvider),
     eventRepo: ref.watch(eventRepoProvider),
   );
 });
+
+class CreateEventViewmodelParams {
+  String? eventId;
+  bool isExperience;
+  CreateEventViewmodelParams({
+    required this.eventId,
+    required this.isExperience,
+  });
+
+  @override
+  bool operator ==(covariant CreateEventViewmodelParams other) {
+    if (identical(this, other)) return true;
+
+    return other.eventId == eventId && other.isExperience == isExperience;
+  }
+
+  @override
+  int get hashCode => eventId.hashCode ^ isExperience.hashCode;
+}

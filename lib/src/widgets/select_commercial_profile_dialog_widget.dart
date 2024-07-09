@@ -6,14 +6,18 @@ import 'package:howapp_panel/src/utils/get_16x9_proportion.dart';
 import 'package:howapp_panel/src/viewmodel/create_event_viewmodel.dart';
 
 class SelectComercialProfileDialog extends ConsumerWidget {
+  final bool isExperience;
   const SelectComercialProfileDialog({
     super.key,
+    required this.isExperience,
   });
 
   @override
   Widget build(BuildContext context, ref) {
-    var viewmodel = ref.watch(createEventViewmodelProvider(null));
-    var notifier = ref.read(createEventViewmodelProvider(null).notifier);
+    var params =
+        CreateEventViewmodelParams(eventId: null, isExperience: isExperience);
+    var viewmodel = ref.watch(createEventViewmodelProvider(params));
+    var notifier = ref.read(createEventViewmodelProvider(params).notifier);
     return AlertDialog(
       title: const Text('Lista de perfis comerciais'),
       content: SizedBox(

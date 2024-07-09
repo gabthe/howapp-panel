@@ -35,9 +35,11 @@ class HighlightsViewmodel {
 }
 
 class HighlightsViewmodelNotifier extends StateNotifier<HighlightsViewmodel> {
-  EventRepo eventRepo;
+  final EventRepo eventRepo;
+  final bool isExperience;
   HighlightsViewmodelNotifier({
     required this.eventRepo,
+    required this.isExperience,
   }) : super(
           HighlightsViewmodel(
             events: [],
@@ -93,9 +95,10 @@ class HighlightsViewmodelNotifier extends StateNotifier<HighlightsViewmodel> {
     try {
       state = state.copyWith(fetchingEvents: ApiState.pending);
 
-      List<Event> allEvents = await eventRepo.fetchAllEvents();
-      List<Event> allCommomEvents =
-          await eventRepo.fetchAllNotHighlightedEvents();
+      List<Event> allEvents =
+          await eventRepo.fetchAllEvents(fetchExperiences: isExperience);
+      List<Event> allCommomEvents = await eventRepo
+          .fetchAllNotHighlightedEvents(fetchExperiences: isExperience);
       var highlightedEvents = generateEventList(allEvents);
       state = state.copyWith(
         events: allEvents,
@@ -111,7 +114,9 @@ class HighlightsViewmodelNotifier extends StateNotifier<HighlightsViewmodel> {
   }
 }
 
-final highlightsViewmodelProvider = StateNotifierProvider.autoDispose<
-    HighlightsViewmodelNotifier, HighlightsViewmodel>((ref) {
-  return HighlightsViewmodelNotifier(eventRepo: ref.watch(eventRepoProvider));
+final highlightsViewmodelProvider = StateNotifierProvider.autoDispose
+    .family<HighlightsViewmodelNotifier, HighlightsViewmodel, bool>(
+        (ref, isExperience) {
+  return HighlightsViewmodelNotifier(
+      eventRepo: ref.watch(eventRepoProvider), isExperience: isExperience);
 });

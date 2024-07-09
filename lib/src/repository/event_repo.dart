@@ -34,7 +34,10 @@ class EventRepo {
     }
   }
 
-  Future<void> createEventInFirestore(Event event) async {
+  Future<void> createEventInFirestore({
+    required Event event,
+    required bool isExperience,
+  }) async {
     try {
       await eventsCollection.doc(event.id).set(event.toMap());
       print('Evento criado: ${event.name}');
@@ -44,10 +47,15 @@ class EventRepo {
     }
   }
 
-  Future<List<Event>> fetchAllEvents() async {
+  Future<List<Event>> fetchAllEvents({required bool fetchExperiences}) async {
     try {
       // Obtém o snapshot da coleção de eventos
-      QuerySnapshot querySnapshot = await eventsCollection.get();
+      QuerySnapshot querySnapshot = await eventsCollection
+          .where(
+            'isExperience',
+            isEqualTo: fetchExperiences,
+          )
+          .get();
 
       // Mapeia cada documento para um objeto Event e retorna a lista
       return querySnapshot.docs.map((doc) {
@@ -59,11 +67,20 @@ class EventRepo {
     }
   }
 
-  Future<List<Event>> fetchAllNotHighlightedEvents() async {
+  Future<List<Event>> fetchAllNotHighlightedEvents(
+      {required bool fetchExperiences}) async {
     try {
       // Obtém o snapshot da coleção de eventos
-      QuerySnapshot querySnapshot =
-          await eventsCollection.where('isHighlighted', isEqualTo: false).get();
+      QuerySnapshot querySnapshot = await eventsCollection
+          .where(
+            'isHighlighted',
+            isEqualTo: false,
+          )
+          .where(
+            'isExperience',
+            isEqualTo: fetchExperiences,
+          )
+          .get();
 
       // Mapeia cada documento para um objeto Event e retorna a lista
       return querySnapshot.docs.map((doc) {

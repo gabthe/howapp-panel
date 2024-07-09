@@ -26,6 +26,8 @@ class Event {
   bool hasTicketSelling;
   bool hasHowStore;
   bool isHighlighted;
+  bool isExperience;
+
   int? highlightIndex;
   List<Activity> activities;
   List<EventTag> eventTags;
@@ -41,6 +43,7 @@ class Event {
     required this.bannerUrl,
     required this.carouselSmallUrl,
     required this.carouselBigUrl,
+    required this.cardImageUrl,
     required this.name,
     required this.description,
     required this.fullAdress,
@@ -50,11 +53,11 @@ class Event {
     required this.hasTicketSelling,
     required this.hasHowStore,
     required this.isHighlighted,
+    required this.isExperience,
     this.highlightIndex,
     required this.activities,
     required this.eventTags,
     required this.interestedList,
-    required this.cardImageUrl,
   });
 
   Map<String, dynamic> toMap() {
@@ -67,9 +70,9 @@ class Event {
       'creatorBannerPictureUrl': creatorBannerPictureUrl,
       'photoUrl': photoUrl,
       'bannerUrl': bannerUrl,
-      'cardImageUrl': cardImageUrl,
       'carouselSmallUrl': carouselSmallUrl,
       'carouselBigUrl': carouselBigUrl,
+      'cardImageUrl': cardImageUrl,
       'name': name,
       'description': description,
       'fullAdress': fullAdress,
@@ -79,6 +82,7 @@ class Event {
       'hasTicketSelling': hasTicketSelling,
       'hasHowStore': hasHowStore,
       'isHighlighted': isHighlighted,
+      'isExperience': isExperience,
       'highlightIndex': highlightIndex,
       'activities': activities.map((x) => x.toMap()).toList(),
       'eventTags': eventTags.map((x) => x.toMap()).toList(),
@@ -96,10 +100,9 @@ class Event {
       creatorBannerPictureUrl: map['creatorBannerPictureUrl'] as String,
       photoUrl: map['photoUrl'] as String,
       bannerUrl: map['bannerUrl'] as String,
-      cardImageUrl:
-          map['cardImageUrl'] != null ? map['cardImageUrl'] as String : '',
       carouselSmallUrl: map['carouselSmallUrl'] as String,
       carouselBigUrl: map['carouselBigUrl'] as String,
+      cardImageUrl: map['cardImageUrl'] as String,
       name: map['name'] as String,
       description: map['description'] as String,
       fullAdress: map['fullAdress'] as String,
@@ -109,6 +112,8 @@ class Event {
       hasTicketSelling: map['hasTicketSelling'] as bool,
       hasHowStore: map['hasHowStore'] as bool,
       isHighlighted: map['isHighlighted'] as bool,
+      isExperience:
+          map['isExperience'] != null ? map['isExperience'] as bool : false,
       highlightIndex:
           map['highlightIndex'] != null ? map['highlightIndex'] as int : null,
       activities: List<Activity>.from(

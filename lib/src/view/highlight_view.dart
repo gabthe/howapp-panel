@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:howapp_panel/src/model/event.dart';
-import 'package:howapp_panel/src/model/highlight_slot.dart';
 import 'package:howapp_panel/src/utils/api_state.dart';
 import 'package:howapp_panel/src/viewmodel/highlight_viewmodel.dart';
 
 class HighlightView extends ConsumerWidget {
-  const HighlightView({super.key});
+  final bool isExperience;
+  const HighlightView({super.key, required this.isExperience});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var viewmodel = ref.watch(highlightsViewmodelProvider);
-    var notifier = ref.read(highlightsViewmodelProvider.notifier);
+    var viewmodel = ref.watch(highlightsViewmodelProvider(isExperience));
+    var notifier = ref.read(highlightsViewmodelProvider(isExperience).notifier);
     return Scaffold(
       body: SafeArea(
         child: Row(
@@ -53,6 +53,7 @@ class HighlightView extends ConsumerWidget {
                                       event: event,
                                       index: index,
                                       isInHighlightOrder: true,
+                                      isExperience: isExperience,
                                     ),
                                   );
                                 }
@@ -144,6 +145,8 @@ class HighlightView extends ConsumerWidget {
                                                                           event,
                                                                       index:
                                                                           index,
+                                                                      isExperience:
+                                                                          isExperience,
                                                                       isInHighlightOrder:
                                                                           false,
                                                                     ),
@@ -208,13 +211,17 @@ class HighlightView extends ConsumerWidget {
                                     onTap: () {
                                       GoRouter.of(context).goNamed(
                                         'create-event',
-                                        extra: event.id,
+                                        extra: {
+                                          'id': event.id,
+                                          'isExperience': event.isExperience,
+                                        },
                                       );
                                     },
                                     child: EventHighlightCard(
                                       event: event,
                                       index: index,
                                       isInHighlightOrder: false,
+                                      isExperience: isExperience,
                                     ),
                                   ),
                                 );
@@ -240,15 +247,17 @@ class EventHighlightCard extends ConsumerWidget {
     required this.event,
     required this.index,
     required this.isInHighlightOrder,
+    required this.isExperience,
   });
 
   final Event event;
   final int index;
   final bool isInHighlightOrder;
+  final bool isExperience;
 
   @override
   Widget build(BuildContext context, ref) {
-    var notifier = ref.read(highlightsViewmodelProvider.notifier);
+    var notifier = ref.read(highlightsViewmodelProvider(isExperience).notifier);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Stack(

@@ -20,9 +20,27 @@ class HomePage extends ConsumerWidget {
             ),
             HomeDrawerButtonWidget(
               onTap: () {
-                context.goNamed("create-event");
+                context.goNamed(
+                  "create-event",
+                  extra: {
+                    'id': null,
+                    'isExperience': false,
+                  },
+                );
               },
               buttonTitle: 'Criar Evento',
+            ),
+            HomeDrawerButtonWidget(
+              onTap: () {
+                context.goNamed(
+                  "create-event",
+                  extra: {
+                    'id': null,
+                    'isExperience': true,
+                  },
+                );
+              },
+              buttonTitle: 'Criar Experiencia',
             ),
             HomeDrawerButtonWidget(
               onTap: () {
@@ -46,7 +64,7 @@ class HomePage extends ConsumerWidget {
         children: [
           Container(
             width: double.infinity,
-            height: 300,
+            height: 600,
             color: Colors.grey[200],
             child: GridView(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -57,17 +75,31 @@ class HomePage extends ConsumerWidget {
                 HomeBigButtonWidget(
                   buttonText: 'Criar novo evento',
                   onPressed: () {
-                    context.goNamed("create-event");
+                    context.goNamed("create-event", extra: {
+                      'id': null,
+                      'isExperience': false,
+                    });
                   },
                 ),
                 HomeBigButtonWidget(
                   buttonText: 'Criar nova experiencia',
-                  onPressed: () {},
+                  onPressed: () {
+                    context.goNamed("create-event", extra: {
+                      'id': null,
+                      'isExperience': true,
+                    });
+                  },
                 ),
                 HomeBigButtonWidget(
                   buttonText: 'Eventos',
                   onPressed: () {
-                    context.goNamed("events");
+                    context.goNamed("events", extra: false);
+                  },
+                ),
+                HomeBigButtonWidget(
+                  buttonText: 'Experiencias',
+                  onPressed: () {
+                    context.goNamed("events", extra: true);
                   },
                 ),
                 HomeBigButtonWidget(
@@ -75,9 +107,15 @@ class HomePage extends ConsumerWidget {
                   onPressed: () {},
                 ),
                 HomeBigButtonWidget(
-                  buttonText: 'Destaques',
+                  buttonText: 'Destaques (Eventos)',
                   onPressed: () {
-                    context.goNamed("highlight");
+                    context.goNamed("highlight", extra: false);
+                  },
+                ),
+                HomeBigButtonWidget(
+                  buttonText: 'Destaques (Experiencias)',
+                  onPressed: () {
+                    context.goNamed("highlight", extra: true);
                   },
                 ),
               ],
